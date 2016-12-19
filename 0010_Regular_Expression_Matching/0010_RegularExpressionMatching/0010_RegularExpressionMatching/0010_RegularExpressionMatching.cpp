@@ -10,6 +10,7 @@
 #include <stack>
 #include <memory>
 #include "compile_time_regex.h"
+#include <string.h>
 
 using namespace std;
 
@@ -39,8 +40,12 @@ public:
 
 	// right, but just only 39%
 	const char EOFChar = '\0';
-	bool isMatch(const char* text, const char* p)
+
+	const char* SPECIALS = "*.";
+
+	bool isMatch( const char* text, const char* p)
 	{
+		BeginMatch:
 		if (*text == EOFChar && *p == EOFChar)
 		{
 			return true;
@@ -61,34 +66,52 @@ public:
 			return false;
 		}
 
-		if ( *p == '.' )
+		if (*p == '.' || *text == *p)
 		{
-			return isMatch(text + 1, p + 1);
-		}
-		else if ( *text == *p )
-		{
-			return isMatch(text + 1, p + 1);
+			++text;
+			++p;
+			goto BeginMatch;
 		}
 
 		return false;
-				
 	}
 
-	bool isMatchStar(const char* text, char ch, const char* p)
+	bool isMatchStar(const char* text, char ch, const char* next_expr)
 	{
-		do 
+		int maxExpand = 0;
+		while ((*(text + maxExpand) == ch || ch == '.')
+			&& *(text + maxExpand) != EOFChar )
 		{
-			if (isMatch(text, p))
+			++maxExpand;
+		}
+
+		while (maxExpand >= 0 )
+		{
+			if (isMatch(text + maxExpand, next_expr))
 			{
 				return true;
 			}
 
-		} while (*text != EOFChar && ( *(text++) == ch || ch == '.' ) );
+			--maxExpand;
+		}
+
 		return false;
 	}
 
 
 	bool isMatch(string s, string p) {
+
+		const char* data = s.data();
+		const char* pattern = p.data();
+		if (strpbrk(pattern, SPECIALS) == NULL)
+		{
+			if ( s.size() != p.size() )
+			{
+				return false; 
+			}
+
+			return ::memcmp(data, pattern, s.size()) == 0;
+		}
 
 		return isMatch(s.data(), p.data());
 	}
