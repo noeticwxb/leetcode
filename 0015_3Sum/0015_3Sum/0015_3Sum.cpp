@@ -11,8 +11,10 @@ using namespace std;
 class Solution {
 public:
 	// beats 9.8%. 想不通，我觉得这样写的算法效率还可以啊。难道要用hash去做?
+	// 加了reserve之后，到23%
 	vector<vector<int>> threeSum(vector<int>& nums) {
 		vector<vector<int>> result;
+		result.reserve(nums.size()/3);
 		size_t count = nums.size();
 		if (count <= 2 )
 		{
